@@ -5,6 +5,8 @@ import alertsRouter from "./alerts";
 import vaccinationsRouter from "./vaccinations";
 import usersRouter from "./users";
 import metricsRouter from "./metrics";
+import reportsRouter from "./reports";
+import blogsRouter from "./blogs";
 
 const router: IRouter = Router();
 
@@ -14,5 +16,7 @@ router.use(alertsRouter);
 router.use(vaccinationsRouter);
 router.use(usersRouter);
 router.use(metricsRouter);
+router.use(reportsRouter);
+router.use(blogsRouter);
 
 export default router;

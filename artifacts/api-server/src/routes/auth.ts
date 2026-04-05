@@ -71,6 +71,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 
   req.session.userId = user._id.toString();
   req.session.userRole = user.role;
+  req.session.userName = user.name;
 
   logger.info({ userId: user._id }, "User logged in");
 

@@ -6,7 +6,7 @@ const router: IRouter = Router();
 
 router.get("/users", requireAdmin, async (req, res): Promise<void> => {
   const users = await User.find({}, { passwordHash: 0 }).sort({ createdAt: -1 });
-  res.json(users);
+  res.json(users.map((user) => user.toObject()));
 });
 
 router.delete("/users/:id", requireAdmin, async (req, res): Promise<void> => {

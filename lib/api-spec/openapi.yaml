@@ -20,6 +20,10 @@ tags:
     description: User management
   - name: metrics
     description: Disease metrics and analytics
+  - name: reports
+    description: User self-reports
+  - name: blogs
+    description: Blog posts and community discussions
 paths:
   /healthz:
     get:
@@ -411,6 +415,242 @@ paths:
                 items:
                   $ref: "#/components/schemas/DiseaseSummary"
 
+  /reports:
+    get:
+      operationId: listReports
+      tags: [reports]
+      summary: List all user reports (admin only)
+      responses:
+        "200":
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+    post:
+      operationId: createReport
+      tags: [reports]
+      summary: Create a new self-report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReportBody"
+      responses:
+        "201":
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+
+  /reports/{id}:
+    delete:
+      operationId: deleteReport
+      tags: [reports]
+      summary: Delete a report (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Report deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /blogs:
+    get:
+      operationId: listBlogs
+      tags: [blogs]
+      summary: List all blogs
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: author
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of blogs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Blog"
+    post:
+      operationId: createBlog
+      tags: [blogs]
+      summary: Create a new blog post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlogBody"
+      responses:
+        "201":
+          description: Blog created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blog"
+
+  /blogs/{id}:
+    get:
+      operationId: getBlog
+      tags: [blogs]
+      summary: Get a single blog post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blog"
+        "404":
+          description: Blog not found
+    put:
+      operationId: updateBlog
+      tags: [blogs]
+      summary: Update a blog post (author only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlogBody"
+      responses:
+        "200":
+          description: Blog updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blog"
+    delete:
+      operationId: deleteBlog
+      tags: [blogs]
+      summary: Delete a blog post (author or admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /blogs/{id}/like:
+    post:
+      operationId: toggleBlogLike
+      tags: [blogs]
+      summary: Toggle like on a blog post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Like toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeResponse"
+
+  /blogs/{id}/comments:
+    post:
+      operationId: createBlogComment
+      tags: [blogs]
+      summary: Add a comment to a blog post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentBody"
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  /blogs/{id}/comments/{commentId}:
+    delete:
+      operationId: deleteBlogComment
+      tags: [blogs]
+      summary: Delete a comment (author or admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Comment deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /blogs/categories:
+    get:
+      operationId: listBlogCategories
+      tags: [blogs]
+      summary: Get all blog categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
 components:
   schemas:
     HealthStatus:
@@ -683,3 +923,158 @@ components:
           nullable: true
       required:
         - disease
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        phoneNumber:
+          type: string
+        symptoms:
+          type: string
+        location:
+          type: string
+        additionalInfo:
+          type: string
+        userId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - date
+        - phoneNumber
+        - symptoms
+        - location
+        - userId
+        - createdAt
+
+    CreateReportBody:
+      type: object
+      properties:
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        phoneNumber:
+          type: string
+        symptoms:
+          type: string
+        location:
+          type: string
+        additionalInfo:
+          type: string
+      required:
+        - name
+        - date
+        - phoneNumber
+        - symptoms
+        - location
+
+    Blog:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        content:
+          type: string
+        author:
+          type: string
+        authorName:
+          type: string
+        likes:
+          type: array
+          items:
+            type: string
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - category
+        - description
+        - author
+        - authorName
+        - likes
+        - comments
+        - createdAt
+        - updatedAt
+
+    CreateBlogBody:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        content:
+          type: string
+      required:
+        - title
+        - category
+        - description
+
+    Comment:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - _id
+        - userId
+        - userName
+        - content
+        - createdAt
+
+    CreateCommentBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    LikeResponse:
+      type: object
+      properties:
+        likes:
+          type: integer
+        isLiked:
+          type: boolean
+      required:
+        - likes
+        - isLiked

@@ -304,3 +304,202 @@ export const GetMetricsSummaryResponseItem = zod.object({
 export const GetMetricsSummaryResponse = zod.array(
   GetMetricsSummaryResponseItem,
 );
+
+/**
+ * @summary List all user reports (admin only)
+ */
+export const ListReportsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  date: zod.coerce.date(),
+  phoneNumber: zod.string(),
+  symptoms: zod.string(),
+  location: zod.string(),
+  additionalInfo: zod.string().optional(),
+  userId: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListReportsResponse = zod.array(ListReportsResponseItem);
+
+/**
+ * @summary Create a new self-report
+ */
+export const CreateReportBody = zod.object({
+  name: zod.string(),
+  date: zod.coerce.date(),
+  phoneNumber: zod.string(),
+  symptoms: zod.string(),
+  location: zod.string(),
+  additionalInfo: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a report (admin only)
+ */
+export const DeleteReportParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteReportResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List all blogs
+ */
+export const ListBlogsQueryParams = zod.object({
+  category: zod.coerce.string().optional(),
+  author: zod.coerce.string().optional(),
+});
+
+export const ListBlogsResponseItem = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  category: zod.string(),
+  description: zod.string(),
+  content: zod.string().optional(),
+  author: zod.string(),
+  authorName: zod.string(),
+  likes: zod.array(zod.string()),
+  comments: zod.array(
+    zod.object({
+      _id: zod.string(),
+      userId: zod.string(),
+      userName: zod.string(),
+      content: zod.string(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListBlogsResponse = zod.array(ListBlogsResponseItem);
+
+/**
+ * @summary Create a new blog post
+ */
+export const CreateBlogBody = zod.object({
+  title: zod.string(),
+  category: zod.string(),
+  description: zod.string(),
+  content: zod.string().optional(),
+});
+
+/**
+ * @summary Get a single blog post
+ */
+export const GetBlogParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetBlogResponse = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  category: zod.string(),
+  description: zod.string(),
+  content: zod.string().optional(),
+  author: zod.string(),
+  authorName: zod.string(),
+  likes: zod.array(zod.string()),
+  comments: zod.array(
+    zod.object({
+      _id: zod.string(),
+      userId: zod.string(),
+      userName: zod.string(),
+      content: zod.string(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a blog post (author only)
+ */
+export const UpdateBlogParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateBlogBody = zod.object({
+  title: zod.string(),
+  category: zod.string(),
+  description: zod.string(),
+  content: zod.string().optional(),
+});
+
+export const UpdateBlogResponse = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  category: zod.string(),
+  description: zod.string(),
+  content: zod.string().optional(),
+  author: zod.string(),
+  authorName: zod.string(),
+  likes: zod.array(zod.string()),
+  comments: zod.array(
+    zod.object({
+      _id: zod.string(),
+      userId: zod.string(),
+      userName: zod.string(),
+      content: zod.string(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a blog post (author or admin)
+ */
+export const DeleteBlogParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteBlogResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Toggle like on a blog post
+ */
+export const ToggleBlogLikeParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const ToggleBlogLikeResponse = zod.object({
+  likes: zod.number(),
+  isLiked: zod.boolean(),
+});
+
+/**
+ * @summary Add a comment to a blog post
+ */
+export const CreateBlogCommentParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const CreateBlogCommentBody = zod.object({
+  content: zod.string(),
+});
+
+/**
+ * @summary Delete a comment (author or admin)
+ */
+export const DeleteBlogCommentParams = zod.object({
+  id: zod.coerce.string(),
+  commentId: zod.coerce.string(),
+});
+
+export const DeleteBlogCommentResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Get all blog categories
+ */
+export const ListBlogCategoriesResponseItem = zod.string();
+export const ListBlogCategoriesResponse = zod.array(
+  ListBlogCategoriesResponseItem,
+);

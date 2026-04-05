@@ -44,7 +44,7 @@ router.get("/metrics", async (req, res): Promise<void> => {
   if (typeof metric === "string" && metric) filter.metric = metric;
 
   const metrics = await Metric.find(filter).sort({ date: -1 });
-  res.json(metrics);
+  res.json(metrics.map((metricRow) => metricRow.toObject()));
 });
 
 router.post("/metrics", requireAdmin, async (req, res): Promise<void> => {

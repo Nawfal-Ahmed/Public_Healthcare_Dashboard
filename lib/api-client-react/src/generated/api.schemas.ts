@@ -154,7 +154,71 @@ export interface DiseaseSummary {
   lastUpdated?: string | null;
 }
 
+export interface Report {
+  id: string;
+  name: string;
+  date: string;
+  phoneNumber: string;
+  symptoms: string;
+  location: string;
+  additionalInfo?: string;
+  userId: string;
+  createdAt: string;
+}
+
+export interface CreateReportBody {
+  name: string;
+  date: string;
+  phoneNumber: string;
+  symptoms: string;
+  location: string;
+  additionalInfo?: string;
+}
+
+export interface Comment {
+  _id: string;
+  userId: string;
+  userName: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface Blog {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  content?: string;
+  author: string;
+  authorName: string;
+  likes: string[];
+  comments: Comment[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBlogBody {
+  title: string;
+  category: string;
+  description: string;
+  content?: string;
+}
+
+export interface CreateCommentBody {
+  content: string;
+}
+
+export interface LikeResponse {
+  likes: number;
+  isLiked: boolean;
+}
+
 export type ListMetricsParams = {
   disease?: string;
   metric?: string;
+};
+
+export type ListBlogsParams = {
+  category?: string;
+  author?: string;
 };

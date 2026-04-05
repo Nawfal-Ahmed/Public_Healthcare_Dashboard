@@ -1,11 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Shield, LayoutDashboard, Syringe, BarChart2, LogOut, MapPin } from "lucide-react";
+import { Shield, LayoutDashboard, Syringe, BarChart2, LogOut, MapPin, FileText, MessageSquare, ClipboardList } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/vaccinations", label: "Vaccinations", icon: Syringe },
+  { href: "/self-report", label: "Self Report", icon: ClipboardList },
+  { href: "/blogs", label: "Community Blog", icon: MessageSquare },
   { href: "/charts", label: "Analytics", icon: BarChart2 },
 ];
 

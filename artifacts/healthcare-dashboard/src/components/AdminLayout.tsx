@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Shield, Bell, Syringe, Users, BarChart2, LogOut, Menu, X, ChevronRight } from "lucide-react";
+import { Shield, Bell, Syringe, Users, BarChart2, LogOut, Menu, X, ChevronRight, FileText, MessageCircle } from "lucide-react";
 
 const navItems = [
   { href: "/admin/alerts", label: "Alerts", icon: Bell },
   { href: "/admin/vaccinations", label: "Vaccination Info", icon: Syringe },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/reports", label: "User Reports", icon: FileText },
+  { href: "/blogs", label: "Community Blog", icon: MessageCircle },
   { href: "/admin/metrics", label: "Metrics", icon: BarChart2 },
 ];
 

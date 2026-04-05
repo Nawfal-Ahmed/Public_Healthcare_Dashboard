@@ -6,7 +6,7 @@ const router: IRouter = Router();
 
 router.get("/vaccinations", async (req, res): Promise<void> => {
   const vaccinations = await Vaccination.find().sort({ createdAt: -1 });
-  res.json(vaccinations);
+  res.json(vaccinations.map((vaccination) => vaccination.toObject()));
 });
 
 router.post("/vaccinations", requireAdmin, async (req, res): Promise<void> => {

@@ -6,7 +6,7 @@ const router: IRouter = Router();
 
 router.get("/alerts", async (req, res): Promise<void> => {
   const alerts = await Alert.find().sort({ createdAt: -1 });
-  res.json(alerts);
+  res.json(alerts.map((alert) => alert.toObject()));
 });
 
 router.post("/alerts", requireAdmin, async (req, res): Promise<void> => {

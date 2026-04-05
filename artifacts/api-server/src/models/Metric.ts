@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IMetric extends Document {
+  id?: string;
   disease: string;
   metric: "hospitalized" | "recovered" | "death_rate";
   value: number;
@@ -17,7 +18,27 @@ const MetricSchema = new Schema<IMetric>(
     date: { type: String, required: true },
     region: { type: String, required: true },
   },
-  { timestamps: { createdAt: true, updatedAt: false } },
+  {
+    timestamps: { createdAt: true, updatedAt: false },
+    toJSON: {
+      virtuals: true,
+      versionKey: false,
+      transform(_, ret) {
+        if (ret._id) {
+          ret.id = ret._id.toString();
+        }
+      },
+    },
+    toObject: {
+      virtuals: true,
+      versionKey: false,
+      transform(_, ret) {
+        if (ret._id) {
+          ret.id = ret._id.toString();
+        }
+      },
+    },
+  },
 );
 
 export default mongoose.model<IMetric>("Metric", MetricSchema);
