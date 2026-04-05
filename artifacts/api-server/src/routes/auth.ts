@@ -1,7 +1,6 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import User from "../models/User";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -19,26 +18,26 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
 
-  const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) {
     res.status(400).json({ error: "Email already in use" });
     return;
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const [user] = await db.insert(usersTable).values({
+  const user = await User.create({
     name,
     email,
     passwordHash,
     role: "user",
     location: location ?? null,
-  }).returning();
+  });
 
-  req.log.info({ userId: user.id }, "User registered");
+  logger.info({ userId: user._id }, "User registered");
 
   res.status(201).json({
     user: {
-      id: user.id,
+      id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -57,7 +56,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  const user = await User.findOne({ email: email.toLowerCase() });
 
   if (!user) {
     res.status(401).json({ error: "Invalid email or password" });
@@ -70,14 +69,14 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  req.session.userId = user.id;
+  req.session.userId = user._id.toString();
   req.session.userRole = user.role;
 
-  req.log.info({ userId: user.id }, "User logged in");
+  logger.info({ userId: user._id }, "User logged in");
 
   res.json({
     user: {
-      id: user.id,
+      id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -103,7 +102,7 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.session.userId));
+  const user = await User.findById(req.session.userId);
 
   if (!user) {
     req.session.destroy(() => {});
@@ -112,7 +111,7 @@ router.get("/auth/me", async (req, res): Promise<void> => {
   }
 
   res.json({
-    id: user.id,
+    id: user._id,
     name: user.name,
     email: user.email,
     role: user.role,

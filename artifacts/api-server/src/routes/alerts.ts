@@ -1,12 +1,11 @@
 import { Router, type IRouter } from "express";
-import { db, alertsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import Alert from "../models/Alert";
 import { requireAdmin } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
 router.get("/alerts", async (req, res): Promise<void> => {
-  const alerts = await db.select().from(alertsTable).orderBy(desc(alertsTable.createdAt));
+  const alerts = await Alert.find().sort({ createdAt: -1 });
   res.json(alerts);
 });
 
@@ -18,30 +17,25 @@ router.post("/alerts", requireAdmin, async (req, res): Promise<void> => {
     return;
   }
 
-  const [alert] = await db.insert(alertsTable).values({
+  const alert = await Alert.create({
     title,
     message,
     severity,
     isActive: isActive !== false,
-  }).returning();
+  });
 
   res.status(201).json(alert);
 });
 
 router.put("/alerts/:id", requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
-
+  const { id } = req.params;
   const { title, message, severity, isActive } = req.body;
 
-  const [alert] = await db.update(alertsTable)
-    .set({ title, message, severity, isActive: isActive !== false })
-    .where(eq(alertsTable.id, id))
-    .returning();
+  const alert = await Alert.findByIdAndUpdate(
+    id,
+    { title, message, severity, isActive: isActive !== false },
+    { new: true },
+  );
 
   if (!alert) {
     res.status(404).json({ error: "Alert not found" });
@@ -52,14 +46,8 @@ router.put("/alerts/:id", requireAdmin, async (req, res): Promise<void> => {
 });
 
 router.delete("/alerts/:id", requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
-
-  await db.delete(alertsTable).where(eq(alertsTable.id, id));
+  const { id } = req.params;
+  await Alert.findByIdAndDelete(id);
   res.json({ message: "Alert deleted" });
 });
 

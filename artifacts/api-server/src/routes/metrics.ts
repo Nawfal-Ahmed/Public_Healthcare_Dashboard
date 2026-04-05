@@ -1,23 +1,20 @@
 import { Router, type IRouter } from "express";
-import { db, metricsTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
+import Metric from "../models/Metric";
 import { requireAdmin } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
 router.get("/metrics/diseases", async (req, res): Promise<void> => {
-  const rows = await db.selectDistinct({ disease: metricsTable.disease }).from(metricsTable);
-  res.json(rows.map((r) => r.disease));
+  const diseases = await Metric.distinct("disease");
+  res.json(diseases);
 });
 
 router.get("/metrics/summary", async (req, res): Promise<void> => {
-  const diseases = await db.selectDistinct({ disease: metricsTable.disease }).from(metricsTable);
+  const diseases = await Metric.distinct("disease");
 
   const summaries = await Promise.all(
-    diseases.map(async ({ disease }) => {
-      const rows = await db.select().from(metricsTable)
-        .where(eq(metricsTable.disease, disease))
-        .orderBy(desc(metricsTable.date));
+    diseases.map(async (disease: string) => {
+      const rows = await Metric.find({ disease }).sort({ date: -1 });
 
       const getLatest = (metric: string) => {
         const row = rows.find((r) => r.metric === metric);
@@ -42,17 +39,11 @@ router.get("/metrics/summary", async (req, res): Promise<void> => {
 router.get("/metrics", async (req, res): Promise<void> => {
   const { disease, metric } = req.query;
 
-  let query = db.select().from(metricsTable).$dynamic();
+  const filter: Record<string, unknown> = {};
+  if (typeof disease === "string" && disease) filter.disease = disease;
+  if (typeof metric === "string" && metric) filter.metric = metric;
 
-  if (typeof disease === "string" && disease) {
-    query = query.where(eq(metricsTable.disease, disease));
-  }
-
-  if (typeof metric === "string" && metric) {
-    query = query.where(eq(metricsTable.metric, metric as "hospitalized" | "recovered" | "death_rate"));
-  }
-
-  const metrics = await query.orderBy(desc(metricsTable.date));
+  const metrics = await Metric.find(filter).sort({ date: -1 });
   res.json(metrics);
 });
 
@@ -64,31 +55,26 @@ router.post("/metrics", requireAdmin, async (req, res): Promise<void> => {
     return;
   }
 
-  const [metricRow] = await db.insert(metricsTable).values({
+  const metricRow = await Metric.create({
     disease,
     metric,
     value: parseFloat(value),
     date,
     region,
-  }).returning();
+  });
 
   res.status(201).json(metricRow);
 });
 
 router.put("/metrics/:id", requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
-
+  const { id } = req.params;
   const { disease, metric, value, date, region } = req.body;
 
-  const [metricRow] = await db.update(metricsTable)
-    .set({ disease, metric, value: parseFloat(value), date, region })
-    .where(eq(metricsTable.id, id))
-    .returning();
+  const metricRow = await Metric.findByIdAndUpdate(
+    id,
+    { disease, metric, value: parseFloat(value), date, region },
+    { new: true },
+  );
 
   if (!metricRow) {
     res.status(404).json({ error: "Metric not found" });
@@ -99,14 +85,8 @@ router.put("/metrics/:id", requireAdmin, async (req, res): Promise<void> => {
 });
 
 router.delete("/metrics/:id", requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
-
-  await db.delete(metricsTable).where(eq(metricsTable.id, id));
+  const { id } = req.params;
+  await Metric.findByIdAndDelete(id);
   res.json({ message: "Metric deleted" });
 });
 

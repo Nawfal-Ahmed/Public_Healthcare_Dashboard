@@ -1,12 +1,11 @@
 import { Router, type IRouter } from "express";
-import { db, vaccinationsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import Vaccination from "../models/Vaccination";
 import { requireAdmin } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
 router.get("/vaccinations", async (req, res): Promise<void> => {
-  const vaccinations = await db.select().from(vaccinationsTable).orderBy(desc(vaccinationsTable.createdAt));
+  const vaccinations = await Vaccination.find().sort({ createdAt: -1 });
   res.json(vaccinations);
 });
 
@@ -18,7 +17,7 @@ router.post("/vaccinations", requireAdmin, async (req, res): Promise<void> => {
     return;
   }
 
-  const [vaccination] = await db.insert(vaccinationsTable).values({
+  const vaccination = await Vaccination.create({
     disease,
     vaccineName,
     description,
@@ -26,25 +25,20 @@ router.post("/vaccinations", requireAdmin, async (req, res): Promise<void> => {
     eligibility,
     availability,
     area,
-  }).returning();
+  });
 
   res.status(201).json(vaccination);
 });
 
 router.put("/vaccinations/:id", requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
-
+  const { id } = req.params;
   const { disease, vaccineName, description, dosesRequired, eligibility, availability, area } = req.body;
 
-  const [vaccination] = await db.update(vaccinationsTable)
-    .set({ disease, vaccineName, description, dosesRequired, eligibility, availability, area })
-    .where(eq(vaccinationsTable.id, id))
-    .returning();
+  const vaccination = await Vaccination.findByIdAndUpdate(
+    id,
+    { disease, vaccineName, description, dosesRequired, eligibility, availability, area },
+    { new: true },
+  );
 
   if (!vaccination) {
     res.status(404).json({ error: "Vaccination not found" });
@@ -55,14 +49,8 @@ router.put("/vaccinations/:id", requireAdmin, async (req, res): Promise<void> =>
 });
 
 router.delete("/vaccinations/:id", requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
-
-  await db.delete(vaccinationsTable).where(eq(vaccinationsTable.id, id));
+  const { id } = req.params;
+  await Vaccination.findByIdAndDelete(id);
   res.json({ message: "Vaccination info deleted" });
 });
 
