@@ -5,6 +5,28 @@ import { requireAuth, requireAdmin } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
+// Helper function to serialize blog with string IDs
+const serializeBlog = (blog: any) => {
+  const obj = blog.toObject?.() || blog;
+  
+  return {
+    ...obj,
+    id: obj._id?.toString?.() || obj.id,
+    author: obj.author?.toString?.() || obj.author?._id?.toString?.() || obj.author,
+    authorName: obj.authorName || obj.userName || "Unknown",
+    likes: (obj.likes || []).map((id: any) => typeof id === 'string' ? id : id?.toString?.() || id),
+    comments: (obj.comments || []).map((comment: any) => ({
+      _id: typeof comment._id === 'string' ? comment._id : comment._id?.toString?.() || comment._id,
+      userId: typeof comment.userId === 'string' ? comment.userId : comment.userId?.toString?.() || comment.userId,
+      userName: comment.userName,
+      content: comment.content,
+      createdAt: typeof comment.createdAt === 'string' ? comment.createdAt : comment.createdAt?.toISOString?.() || comment.createdAt,
+    })),
+    createdAt: typeof obj.createdAt === 'string' ? obj.createdAt : obj.createdAt?.toISOString?.() || obj.createdAt,
+    updatedAt: typeof obj.updatedAt === 'string' ? obj.updatedAt : obj.updatedAt?.toISOString?.() || obj.updatedAt,
+  };
+};
+
 // Get all blogs
 router.get("/blogs", async (req, res): Promise<void> => {
   const { category, author } = req.query;
@@ -17,7 +39,7 @@ router.get("/blogs", async (req, res): Promise<void> => {
     .populate("author", "name email")
     .sort({ createdAt: -1 });
 
-  res.json(blogs.map((blog) => blog.toObject()));
+  res.json(blogs.map((blog) => serializeBlog(blog)));
 });
 
 // Get single blog
@@ -30,10 +52,7 @@ router.get("/blogs/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({
-    ...blog.toObject(),
-    id: blog._id.toString(),
-  });
+  res.json(serializeBlog(blog));
 });
 
 // Create blog
@@ -45,16 +64,21 @@ router.post("/blogs", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const blog = await Blog.create({
-    title,
-    category,
-    description,
-    content: content || "",
-    author: req.session.userId,
-    authorName: req.session.userName || "Unknown",
-  });
+  try {
+    const blog = await Blog.create({
+      title,
+      category,
+      description,
+      content: content || "",
+      author: new mongoose.Types.ObjectId(req.session.userId),
+      authorName: req.session.userName || "Unknown",
+    });
 
-  res.status(201).json(blog);
+    res.status(201).json(serializeBlog(blog));
+  } catch (error: any) {
+    console.error("Error creating blog:", error);
+    res.status(500).json({ error: "Failed to create blog: " + error.message });
+  }
 });
 
 // Update blog (author only)
@@ -79,7 +103,7 @@ router.put("/blogs/:id", requireAuth, async (req, res): Promise<void> => {
   blog.content = content !== undefined ? content : blog.content;
 
   await blog.save();
-  res.json(blog);
+  res.json(serializeBlog(blog));
 });
 
 // Delete blog (author or admin)
@@ -153,7 +177,13 @@ router.post("/blogs/:id/comments", requireAuth, async (req, res): Promise<void> 
   blog.comments.push(comment);
   await blog.save();
 
-  res.status(201).json(comment);
+  res.status(201).json({
+    _id: comment._id.toString(),
+    userId: comment.userId.toString(),
+    userName: comment.userName,
+    content: comment.content,
+    createdAt: comment.createdAt.toISOString(),
+  });
 });
 
 // Delete comment (comment author or admin)
