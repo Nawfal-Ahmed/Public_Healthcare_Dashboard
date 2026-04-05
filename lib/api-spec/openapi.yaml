@@ -3,20 +3,29 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Public Healthcare Dashboard API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: alerts
+    description: Health alerts
+  - name: vaccinations
+    description: Vaccination information
+  - name: users
+    description: User management
+  - name: metrics
+    description: Disease metrics and analytics
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +33,384 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List all alerts
+      responses:
+        "200":
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+    post:
+      operationId: createAlert
+      tags: [alerts]
+      summary: Create a new alert (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertBody"
+      responses:
+        "201":
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+
+  /alerts/{id}:
+    put:
+      operationId: updateAlert
+      tags: [alerts]
+      summary: Update an alert (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertBody"
+      responses:
+        "200":
+          description: Alert updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+    delete:
+      operationId: deleteAlert
+      tags: [alerts]
+      summary: Delete an alert (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Alert deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /vaccinations:
+    get:
+      operationId: listVaccinations
+      tags: [vaccinations]
+      summary: List vaccination info
+      responses:
+        "200":
+          description: List of vaccination info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vaccination"
+    post:
+      operationId: createVaccination
+      tags: [vaccinations]
+      summary: Create vaccination info (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVaccinationBody"
+      responses:
+        "201":
+          description: Vaccination info created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vaccination"
+
+  /vaccinations/{id}:
+    put:
+      operationId: updateVaccination
+      tags: [vaccinations]
+      summary: Update vaccination info (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVaccinationBody"
+      responses:
+        "200":
+          description: Vaccination info updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vaccination"
+    delete:
+      operationId: deleteVaccination
+      tags: [vaccinations]
+      summary: Delete vaccination info (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vaccination info deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (admin only)
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Delete a user (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /metrics:
+    get:
+      operationId: listMetrics
+      tags: [metrics]
+      summary: List disease metrics
+      parameters:
+        - name: disease
+          in: query
+          schema:
+            type: string
+        - name: metric
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiseaseMetric"
+    post:
+      operationId: createMetric
+      tags: [metrics]
+      summary: Create or update a disease metric (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMetricBody"
+      responses:
+        "201":
+          description: Metric created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiseaseMetric"
+
+  /metrics/{id}:
+    put:
+      operationId: updateMetric
+      tags: [metrics]
+      summary: Update a metric (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMetricBody"
+      responses:
+        "200":
+          description: Metric updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiseaseMetric"
+    delete:
+      operationId: deleteMetric
+      tags: [metrics]
+      summary: Delete a metric (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Metric deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /metrics/diseases:
+    get:
+      operationId: listDiseases
+      tags: [metrics]
+      summary: List unique diseases
+      responses:
+        "200":
+          description: List of diseases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /metrics/summary:
+    get:
+      operationId: getMetricsSummary
+      tags: [metrics]
+      summary: Get summary of all metrics grouped by disease
+      responses:
+        "200":
+          description: Metrics summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiseaseSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +421,265 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        location:
+          type: string
+      required:
+        - name
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [user, admin]
+        location:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        message:
+          type: string
+      required:
+        - user
+        - message
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - message
+        - severity
+        - isActive
+        - createdAt
+        - updatedAt
+
+    CreateAlertBody:
+      type: object
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        isActive:
+          type: boolean
+      required:
+        - title
+        - message
+        - severity
+
+    Vaccination:
+      type: object
+      properties:
+        id:
+          type: integer
+        disease:
+          type: string
+        vaccineName:
+          type: string
+        description:
+          type: string
+        dosesRequired:
+          type: integer
+        eligibility:
+          type: string
+        availability:
+          type: string
+        area:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - disease
+        - vaccineName
+        - description
+        - dosesRequired
+        - eligibility
+        - availability
+        - area
+        - createdAt
+        - updatedAt
+
+    CreateVaccinationBody:
+      type: object
+      properties:
+        disease:
+          type: string
+        vaccineName:
+          type: string
+        description:
+          type: string
+        dosesRequired:
+          type: integer
+        eligibility:
+          type: string
+        availability:
+          type: string
+        area:
+          type: string
+      required:
+        - disease
+        - vaccineName
+        - description
+        - dosesRequired
+        - eligibility
+        - availability
+        - area
+
+    DiseaseMetric:
+      type: object
+      properties:
+        id:
+          type: integer
+        disease:
+          type: string
+        metric:
+          type: string
+          enum: [hospitalized, recovered, death_rate]
+        value:
+          type: number
+        date:
+          type: string
+          format: date
+        region:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - disease
+        - metric
+        - value
+        - date
+        - region
+        - createdAt
+
+    CreateMetricBody:
+      type: object
+      properties:
+        disease:
+          type: string
+        metric:
+          type: string
+          enum: [hospitalized, recovered, death_rate]
+        value:
+          type: number
+        date:
+          type: string
+          format: date
+        region:
+          type: string
+      required:
+        - disease
+        - metric
+        - value
+        - date
+        - region
+
+    DiseaseSummary:
+      type: object
+      properties:
+        disease:
+          type: string
+        hospitalized:
+          type: number
+          nullable: true
+        recovered:
+          type: number
+          nullable: true
+        death_rate:
+          type: number
+          nullable: true
+        lastUpdated:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - disease
